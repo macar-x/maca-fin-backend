@@ -1,5 +1,6 @@
 package com.macacloud.fin.controller;
 
+import com.macacloud.fin.constant.UserRoleConstant;
 import com.macacloud.fin.model.CommonResponse;
 import com.macacloud.fin.model.UserLoginDTO;
 import com.macacloud.fin.util.ResponseUtil;
@@ -19,15 +20,18 @@ import org.eclipse.microprofile.jwt.Claims;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 /**
- * System Login API
+ * User Login API
+ * Due to request-specific state, use @RequestScoped instead of @ApplicationScoped.
  *
  * @author Emmett
  * @since 2025/01/08
  */
 @Slf4j
+@Path("/user")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 @RequestScoped
-@Path("/system")
-public class SystemLoginResource {
+public class UserLoginResource {
 
     @Inject
     JsonWebToken jwt;
@@ -38,15 +42,13 @@ public class SystemLoginResource {
     @GET
     @Path("/hello")
     @PermitAll
-    @Produces(MediaType.APPLICATION_JSON)
     public CommonResponse<String> hello(@Context SecurityContext ctx) {
         return ResponseUtil.success(this.checkJWT(ctx));
     }
 
     @GET
     @Path("/login")
-    @RolesAllowed({ "User", "Admin" })
-    @Produces(MediaType.TEXT_PLAIN)
+    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
     public CommonResponse<String> isLogin(@Context SecurityContext ctx) {
         String response = this.checkJWT(ctx);
         return ResponseUtil.success(response + ", birthdate: " + birthdate);
@@ -55,8 +57,6 @@ public class SystemLoginResource {
     @POST
     @Path("/login")
     @PermitAll
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public CommonResponse<String> doLogin(UserLoginDTO loginDTO) {
 
         String user = StringUtil.EMPTY_STRING;
