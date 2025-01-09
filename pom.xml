@@ -73,11 +73,15 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-oidc</artifactId>
         </dependency> -->
-        <!-- <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-core</artifactId>
-            <version>1.39.0</version>
-        </dependency> -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt-build</artifactId>
+        </dependency>
+
 
         <!-- Utilities -->
         <dependency>

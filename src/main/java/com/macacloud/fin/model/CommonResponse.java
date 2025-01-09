@@ -2,6 +2,12 @@ package com.macacloud.fin.model;
 
 import lombok.*;
 
+/**
+ * Common Response Structure for REST.
+ *
+ * @author Emmett
+ * @since 2025/01/08
+ */
 @Getter
 @Setter
 @ToString
