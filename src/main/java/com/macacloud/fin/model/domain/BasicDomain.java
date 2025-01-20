@@ -1,8 +1,9 @@
-package com.macacloud.fin.model;
+package com.macacloud.fin.model.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.quarkus.hibernate.reactive.panache.PanacheEntity;
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,13 +24,23 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @MappedSuperclass
-public class BasicDomain extends PanacheEntity {
+public class BasicDomain extends PanacheEntityBase {
 
-    @JsonIgnore
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = Boolean.FALSE;
+    @Id
+    @Column(name = "id", nullable = false)
+    private Long id;
+
+    @Column(name = "created_at", insertable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", insertable = false)
+    private LocalDateTime updatedAt;
 
     @JsonIgnore
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @JsonIgnore
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = Boolean.FALSE;
 }

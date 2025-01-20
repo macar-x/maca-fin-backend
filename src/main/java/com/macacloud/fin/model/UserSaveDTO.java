@@ -27,6 +27,6 @@ public class UserSaveDTO {
     @JsonProperty(value = "email")
     private String email;
 
-    @JsonProperty(value = "mobilePhone")
+    @JsonProperty(value = "mobile_phone")
     private String mobilePhone;
 }

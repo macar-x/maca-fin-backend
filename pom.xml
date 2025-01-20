@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.macacloud</groupId>
     <artifactId>maca-fin-backend</artifactId>
@@ -101,6 +102,11 @@
             <version>1.18.36</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.77</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -187,8 +193,11 @@
                                 </goals>
                                 <configuration>
                                     <systemPropertyVariables>
-                                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                        <native.image.path>
+                                            ${project.build.directory}/${project.build.finalName}-runner
+                                        </native.image.path>
+                                        <java.util.logging.manager>org.jboss.logmanager.LogManager
+                                        </java.util.logging.manager>
                                         <maven.home>${maven.home}</maven.home>
                                     </systemPropertyVariables>
                                 </configuration>

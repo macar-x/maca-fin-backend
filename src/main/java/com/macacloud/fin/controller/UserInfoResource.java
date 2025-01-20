@@ -1,9 +1,14 @@
 package com.macacloud.fin.controller;
 
 import com.macacloud.fin.constant.UserRoleConstant;
-import com.macacloud.fin.model.UserInfo;
+import com.macacloud.fin.constant.UserRoleEnum;
+import com.macacloud.fin.exception.ArgumentNotValidException;
 import com.macacloud.fin.model.UserSaveDTO;
+import com.macacloud.fin.model.domain.UserInfoDomain;
 import com.macacloud.fin.service.UserService;
+import com.macacloud.fin.util.PasswordHashingUtil;
+import com.macacloud.fin.util.SessionUtil;
+import com.macacloud.fin.util.SnowFlakeUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.util.StringUtil;
@@ -18,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,43 +41,62 @@ public class UserInfoResource {
 
     @Inject
     UserService userService;
+    @Inject
+    SessionUtil sessionUtil;
 
     @GET
     @Path("")
-    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
-    // Uni is an asynchronous type. It’s a bit like a future.
-    public Uni<List<UserInfo>> list() {
-        return UserInfo.listAll(Sort.by("id"));
+    @PermitAll
+    public Uni<UserInfoDomain> get() {
+        Long userId = sessionUtil.requireLoginUserId();
+        return UserInfoDomain.findById(userId);
     }
 
     @GET
     @Path("/{id}")
     @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
-    public Uni<UserInfo> get(@PathParam("id") Long id) {
-        return UserInfo.findById(id);
+    public Uni<UserInfoDomain> get(@PathParam("id") Long id) {
+        return UserInfoDomain.findById(id);
+    }
+
+    @GET
+    @Path("/list")
+    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
+    public Uni<List<UserInfoDomain>> list() {
+        return UserInfoDomain.listAll(Sort.by("id"));
     }
 
     @POST
     @Path("")
     @PermitAll
-    public Uni<RestResponse<UserInfo>> create(UserSaveDTO userSaveDTO) {
+    public Uni<RestResponse<UserInfoDomain>> create(UserSaveDTO userSaveDTO) {
 
+        // Parameter validations.
         if (StringUtil.isNullOrEmpty(userSaveDTO.getUsername())) {
-            // todo(emmett): use exception and handler instead.
-            return null;
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
         }
         if (StringUtil.isNullOrEmpty(userSaveDTO.getPassword())) {
-            return null;
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
+        }
+        if (StringUtil.isNullOrEmpty(userSaveDTO.getMobilePhone())) {
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("mobile_phone"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
+        }
+        if (StringUtil.isNullOrEmpty(userSaveDTO.getEmail())) {
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("email"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
         }
 
-        UserInfo userInfo = new UserInfo();
+        UserInfoDomain userInfo = new UserInfoDomain();
+        userInfo.setId(SnowFlakeUtil.getNextId());
+        userInfo.setRoleId(UserRoleEnum.USER.getId());
         userInfo.setUsername(userSaveDTO.getUsername());
-        userInfo.setPassword(userSaveDTO.getPassword());
-        userInfo.setEmail(userSaveDTO.getEmail());
+        userInfo.setPassword(PasswordHashingUtil.hashPassword(userSaveDTO.getPassword()));
         userInfo.setMobilePhone(userSaveDTO.getMobilePhone());
-        userInfo.setRole(UserRoleConstant.USER);
-        userInfo.setDeleted(Boolean.FALSE);
-        userInfo.setDeletedAt(null);
+        userInfo.setEmail(userSaveDTO.getEmail());
+
         return Panache.withTransaction(userInfo::persist)
                 .replaceWith(RestResponse.status(Response.Status.CREATED, userInfo));
     }
