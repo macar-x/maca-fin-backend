@@ -1,15 +1,11 @@
 package com.macacloud.fin.controller;
 
-import com.macacloud.fin.exception.ArgumentNotValidException;
-import com.macacloud.fin.exception.GlobalRuntimeException;
 import com.macacloud.fin.model.CommonResponse;
 import com.macacloud.fin.model.UserLoginDTO;
-import com.macacloud.fin.model.domain.UserInfoDomain;
-import com.macacloud.fin.util.PasswordHashingUtil;
+import com.macacloud.fin.service.UserService;
 import com.macacloud.fin.util.ResponseUtil;
 import com.macacloud.fin.util.SessionUtil;
-import com.macacloud.fin.util.WebTokenUtil;
-import io.quarkus.runtime.util.StringUtil;
+import io.quarkus.hibernate.reactive.panache.common.WithSession;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,8 +13,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Collections;
 
 /**
  * User Login API
@@ -35,6 +29,8 @@ import java.util.Collections;
 public class AuthLoginResource {
 
     @Inject
+    UserService userService;
+    @Inject
     SessionUtil sessionUtil;
 
     @GET
@@ -47,34 +43,9 @@ public class AuthLoginResource {
     @POST
     @Path("/login")
     @PermitAll
+    @WithSession
     public Uni<CommonResponse<String>> doLogin(UserLoginDTO loginDTO) {
-
-        // Parameter validations.
-        if (loginDTO == null) {
-            throw new ArgumentNotValidException();
-        }
-        if (StringUtil.isNullOrEmpty(loginDTO.getUsername())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-        if (StringUtil.isNullOrEmpty(loginDTO.getPassword())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-
-        return UserInfoDomain.findByUsername(loginDTO.getUsername())
-                .onItem().ifNull().failWith(() -> new GlobalRuntimeException(
-                        "USER_NOT_FOUND", "user " + loginDTO.getUsername() + " not exist."))
-                .flatMap(userInfo -> {
-                    // Verify password
-                    if (!PasswordHashingUtil.verifyPassword(loginDTO.getPassword(), userInfo.getPassword())) {
-                        return Uni.createFrom().failure(new GlobalRuntimeException(
-                                "PASSWORD_INCORRECT", "user " + loginDTO.getUsername() + " password incorrect."));
-                    }
-
-                    // Generate token and create response
-                    String token = WebTokenUtil.generateToken(userInfo.getId(), userInfo.getUsername());
-                    return Uni.createFrom().item(ResponseUtil.success(token));
-                });
+        return userService.doLogin(loginDTO).onItem().transform(token ->
+                ResponseUtil.success("login succeed.", token));
     }
 }

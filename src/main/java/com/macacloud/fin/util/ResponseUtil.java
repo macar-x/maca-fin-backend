@@ -1,8 +1,10 @@
 package com.macacloud.fin.util;
 
 import com.macacloud.fin.model.CommonResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.internal.StringUtil;
+import jakarta.ws.rs.core.Response;
+
+import java.time.LocalDateTime;
 
 /**
  * REST Response Utility.
@@ -12,10 +14,40 @@ import io.netty.util.internal.StringUtil;
  */
 public class ResponseUtil {
 
+    public static <T> CommonResponse<T> success(Response.Status status) {
+        return success(status, null);
+    }
+
     public static <T> CommonResponse<T> success(T body) {
+        return success(StringUtil.EMPTY_STRING, body);
+    }
+
+    public static <T> CommonResponse<T> success(String message) {
+        return success(message, null);
+    }
+
+    public static <T> CommonResponse<T> success(Response.Status status, String message) {
+        return compose(status, message, null);
+    }
+
+    public static <T> CommonResponse<T> success(Response.Status status, T body) {
+        return compose(status, StringUtil.EMPTY_STRING, body);
+    }
+
+    public static <T> CommonResponse<T> success(String message, T body) {
+        return compose(Response.Status.OK, message, body);
+    }
+
+    public static <T> CommonResponse<T> failed(String message) {
+        return compose(Response.Status.INTERNAL_SERVER_ERROR, message, null);
+    }
+
+    public static <T> CommonResponse<T> compose(Response.Status status, String message, T body) {
         return CommonResponse.<T>builder()
-                .code(String.valueOf(HttpResponseStatus.OK.code()))
-                .message(StringUtil.EMPTY_STRING)
-                .body(body).build();
+                .code(status.getStatusCode())
+                .message(message)
+                .body(body)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
     }
 }

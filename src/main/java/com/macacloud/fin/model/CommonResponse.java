@@ -15,7 +15,8 @@ import lombok.*;
 @AllArgsConstructor
 public class CommonResponse<T> {
 
-    private String code;
+    private Integer code;
     private String message;
     private T body;
+    private String timestamp;
 }

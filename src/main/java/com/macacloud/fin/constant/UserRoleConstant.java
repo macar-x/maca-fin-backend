@@ -9,8 +9,8 @@ package com.macacloud.fin.constant;
  */
 public abstract class UserRoleConstant {
 
-    public static final String ROOT = "root";
-    public static final String ADMIN = "admin";
-    public static final String USER = "user";
-    public static final String GUEST = "guest";
+    public static final String ROOT = "ROOT";
+    public static final String ADMIN = "ADMIN";
+    public static final String USER = "USER";
+    public static final String GUEST = "GUEST";
 }

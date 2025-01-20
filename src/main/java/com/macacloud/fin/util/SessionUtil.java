@@ -55,7 +55,6 @@ public class SessionUtil implements Serializable {
         if (principal == null) {
             return null;
         }
-
         String userIdInString = principal.getName();
         if (StringUtil.isNullOrEmpty(userIdInString)) {
             return null;

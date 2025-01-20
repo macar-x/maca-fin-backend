@@ -15,13 +15,10 @@ import java.io.Serial;
 @Setter
 public class GlobalRuntimeException extends RuntimeException {
 
-    private String code;
-
     @Serial
     private static final long serialVersionUID = 5232398196845848742L;
 
-    public GlobalRuntimeException(String code, String message) {
+    public GlobalRuntimeException(String message) {
         super(message);
-        this.code = code;
     }
 }

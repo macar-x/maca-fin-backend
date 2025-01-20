@@ -18,7 +18,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Cacheable
-@Table(name = "user_role")
+@Table(name = "user_role", schema = "backend")
 public class UserRoleDomain extends BasicDomain {
 
     @Column(name = "name", length = 128, unique = true, nullable = false)
