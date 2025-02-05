@@ -2,13 +2,13 @@ package com.macacloud.fin.controller;
 
 import com.macacloud.fin.constant.UserRoleConstant;
 import com.macacloud.fin.model.CommonResponse;
-import com.macacloud.fin.model.UserSaveDTO;
 import com.macacloud.fin.model.domain.UserInfoDomain;
 import com.macacloud.fin.service.UserService;
 import com.macacloud.fin.util.ResponseUtil;
 import com.macacloud.fin.util.SessionUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.panache.common.Sort;
+import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -29,6 +29,7 @@ import java.util.List;
  */
 @Slf4j
 @Path("/user")
+@Authenticated
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
@@ -41,21 +42,21 @@ public class UserInfoResource {
 
     @GET
     @Path("")
-    @PermitAll
+    @RolesAllowed(UserRoleConstant.USER)
     public Uni<CommonResponse<UserInfoDomain>> get() {
-        return userService.getById(sessionUtil.requireLoginUserId()).onItem().transform(ResponseUtil::success);
+        return userService.getByUsername(sessionUtil.requireLoginUsername()).onItem().transform(ResponseUtil::success);
     }
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
+    @RolesAllowed(UserRoleConstant.ADMIN)
     public Uni<CommonResponse<UserInfoDomain>> get(@PathParam("id") Long userId) {
         return userService.getById(userId).onItem().transform(ResponseUtil::success);
     }
 
     @GET
     @Path("/list")
-    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
+    @RolesAllowed(UserRoleConstant.ADMIN)
     public Uni<CommonResponse<List<UserInfoDomain>>> list() {
         return UserInfoDomain.listAll(Sort.by("id"))
                 .onItem().transform(list -> {
@@ -66,18 +67,11 @@ public class UserInfoResource {
                 });
     }
 
-    @POST
-    @Path("")
-    @PermitAll
-    public Uni<CommonResponse<UserInfoDomain>> create(UserSaveDTO userSaveDTO) {
-        Uni<UserInfoDomain> userInfoFuture = userService.create(userSaveDTO);
-        return userInfoFuture.onItem().transform(item -> ResponseUtil.success(Response.Status.CREATED, item));
-    }
-
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({UserRoleConstant.ROOT, UserRoleConstant.ADMIN})
+    @RolesAllowed(UserRoleConstant.ADMIN)
     public Uni<CommonResponse<Boolean>> delete(@PathParam("id") Long id) {
+        // fixme(emmett): Should also delete it on OIDC too.
         return Panache.withTransaction(() -> UserInfoDomain.deleteById(id)
                 .onItem().transform(ResponseUtil::success)
                 .onItem().ifNull().continueWith(ResponseUtil.success(Response.Status.NOT_FOUND)));

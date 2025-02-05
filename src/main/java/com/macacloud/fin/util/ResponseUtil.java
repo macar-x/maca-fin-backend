@@ -39,7 +39,11 @@ public class ResponseUtil {
     }
 
     public static <T> CommonResponse<T> failed(String message) {
-        return compose(Response.Status.INTERNAL_SERVER_ERROR, message, null);
+        return failed(message, null);
+    }
+
+    public static <T> CommonResponse<T> failed(String message, T body) {
+        return compose(Response.Status.INTERNAL_SERVER_ERROR, message, body);
     }
 
     public static <T> CommonResponse<T> compose(Response.Status status, String message, T body) {

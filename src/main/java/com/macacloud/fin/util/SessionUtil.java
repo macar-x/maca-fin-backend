@@ -1,11 +1,10 @@
 package com.macacloud.fin.util;
 
 import com.macacloud.fin.exception.LoginRequiredException;
-import io.quarkus.runtime.util.StringUtil;
-import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -17,65 +16,57 @@ import java.security.Principal;
  * @author Emmett
  * @since 2025/01/17
  */
+@Slf4j
 @RequestScoped
 public class SessionUtil implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -4537689537273972999L;
 
+    /**
+     * Injection point for the Access Token issued by the OpenID Connect Provider
+     * @Inject
+     * JsonWebToken accessToken;
+     */
+
     @Inject
-    CurrentIdentityAssociation identityAssociation;
+    SecurityIdentity identity;
 
 
     public Boolean isLogin() {
+
+        // log.warn("identity: {}", identity.getPrincipal().getName());
+        // log.warn("accessToken: {}", accessToken.getRawToken());
+
         return !this.isNotLogin();
     }
 
     public Boolean isNotLogin() {
-
-        SecurityIdentity identity = this.getIdentity();
         if (identity == null) {
             return Boolean.TRUE;
         }
         return Boolean.TRUE.equals(identity.isAnonymous());
     }
 
-    public Long requireLoginUserId() {
+    public String requireLoginUsername() {
 
-        Long userId = this.getLoginUserId();
-        if (userId == null) {
+        String username = this.getLoginUsername();
+        if (username == null) {
             throw new LoginRequiredException();
         }
-        return userId;
+        return username;
     }
 
-    public Long getLoginUserId() {
+    public String getLoginUsername() {
 
-        Principal principal = this.getLoginUser();
+        if (identity == null) {
+            return null;
+        }
+        Principal principal = identity.getPrincipal();
         if (principal == null) {
             return null;
         }
-        String userIdInString = principal.getName();
-        if (StringUtil.isNullOrEmpty(userIdInString)) {
-            return null;
-        }
-        return Long.parseLong(userIdInString);
-    }
 
-    private Principal getLoginUser() {
-
-        SecurityIdentity securityIdentity = this.getIdentity();
-        if (securityIdentity == null) {
-            return null;
-        }
-        return securityIdentity.getPrincipal();
-    }
-
-    private SecurityIdentity getIdentity() {
-
-        if (identityAssociation == null) {
-            return null;
-        }
-        return identityAssociation.getIdentity();
+        return principal.getName();
     }
 }

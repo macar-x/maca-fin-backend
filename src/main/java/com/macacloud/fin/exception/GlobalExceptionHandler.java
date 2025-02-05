@@ -3,6 +3,7 @@ package com.macacloud.fin.exception;
 import com.macacloud.fin.model.CommonResponse;
 import com.macacloud.fin.util.ResponseUtil;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -42,6 +43,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
             }
             case DataNotFoundException ignored -> responseStatus = Response.Status.NOT_FOUND;
             case GlobalRuntimeException ignored -> responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+            case WebApplicationException e -> responseStatus = Response.Status.fromStatusCode(e.getResponse().getStatus());
             default -> {
                 // Unexpected Error, log and return.
                 log.error("Unknown exception caught: ", exception);

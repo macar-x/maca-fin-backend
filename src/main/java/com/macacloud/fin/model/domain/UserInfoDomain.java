@@ -23,15 +23,15 @@ import lombok.Setter;
 @Table(name = "user_info", schema = "backend")
 public class UserInfoDomain extends BasicDomain {
 
-    @Column(name = "role_id", length = 32, nullable = false)
-    private Long roleId;
-
     @Column(name = "username", length = 64, unique = true, nullable = false)
     private String username;
 
     @JsonIgnore
     @Column(name = "password", length = 256, nullable = false)
     private String password;
+
+    @Column(name = "roles", length = 128, nullable = false)
+    private String roles;
 
     @Column(name = "mobile_phone", length = 32, nullable = false)
     private String mobilePhone;

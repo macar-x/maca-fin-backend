@@ -1,14 +1,13 @@
 package com.macacloud.fin.service;
 
-import com.macacloud.fin.constant.UserRoleEnum;
+import com.macacloud.fin.constant.UserRoleConstant;
 import com.macacloud.fin.exception.ArgumentNotValidException;
 import com.macacloud.fin.exception.DataNotFoundException;
-import com.macacloud.fin.model.UserLoginDTO;
-import com.macacloud.fin.model.UserSaveDTO;
+import com.macacloud.fin.exception.GlobalRuntimeException;
+import com.macacloud.fin.model.auth.UserRegistrationRequest;
 import com.macacloud.fin.model.domain.UserInfoDomain;
 import com.macacloud.fin.util.PasswordHashingUtil;
 import com.macacloud.fin.util.SnowFlakeUtil;
-import com.macacloud.fin.util.WebTokenUtil;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.quarkus.runtime.util.StringUtil;
 import io.smallrye.mutiny.Uni;
@@ -27,71 +26,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Uni<UserInfoDomain> create(UserSaveDTO userSaveDTO) {
+    public Uni<UserInfoDomain> getByUsername(String username) {
+        return UserInfoDomain.findByUsername(username)
+                .onItem().ifNull().failWith(() -> new GlobalRuntimeException("user " + username + " not exist."));
+    }
+
+    @Override
+    public Uni<UserInfoDomain> create(UserRegistrationRequest userRegistrationRequest) {
 
         // Parameter validations.
-        if (StringUtil.isNullOrEmpty(userSaveDTO.getUsername())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-        if (StringUtil.isNullOrEmpty(userSaveDTO.getPassword())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-        if (StringUtil.isNullOrEmpty(userSaveDTO.getMobilePhone())) {
+        if (StringUtil.isNullOrEmpty(userRegistrationRequest.getMobilePhone())) {
             throw new ArgumentNotValidException(
                     Collections.singletonList("mobile_phone"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
         }
-        if (StringUtil.isNullOrEmpty(userSaveDTO.getEmail())) {
+        if (StringUtil.isNullOrEmpty(userRegistrationRequest.getEmail())) {
             throw new ArgumentNotValidException(
                     Collections.singletonList("email"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
         }
 
-        return UserInfoDomain.findByUsername(userSaveDTO.getUsername()).onItem().ifNotNull()
+        return UserInfoDomain.findByUsername(userRegistrationRequest.getUsername()).onItem().ifNotNull()
                 // Username duplicate check.
                 .failWith(new ArgumentNotValidException(Collections.singletonList("username"), "has been taken"))
                 // Persist new user.
                 .onItem().call(() -> {
                     UserInfoDomain userInfo = new UserInfoDomain();
                     userInfo.setId(SnowFlakeUtil.getNextId());
-                    userInfo.setRoleId(UserRoleEnum.USER.getId());
-                    userInfo.setUsername(userSaveDTO.getUsername());
-                    userInfo.setPassword(PasswordHashingUtil.hashPassword(userSaveDTO.getPassword()));
-                    userInfo.setMobilePhone(userSaveDTO.getMobilePhone());
-                    userInfo.setEmail(userSaveDTO.getEmail());
+                    userInfo.setUsername(userRegistrationRequest.getUsername());
+                    userInfo.setPassword(PasswordHashingUtil.hashPassword(userRegistrationRequest.getPassword()));
+                    userInfo.setRoles(UserRoleConstant.USER);
+                    userInfo.setMobilePhone(userRegistrationRequest.getMobilePhone());
+                    userInfo.setEmail(userRegistrationRequest.getEmail());
                     return Panache.withTransaction(userInfo::persist).replaceWith(userInfo);
                 });
-    }
-
-    @Override
-    public Uni<String> doLogin(UserLoginDTO loginDTO) {
-
-        // Parameter validations.
-        if (loginDTO == null) {
-            throw new ArgumentNotValidException();
-        }
-        if (StringUtil.isNullOrEmpty(loginDTO.getUsername())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-        if (StringUtil.isNullOrEmpty(loginDTO.getPassword())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-
-        return UserInfoDomain.findByUsername(loginDTO.getUsername())
-                .onItem().ifNull().failWith(() -> new DataNotFoundException("user"))
-                // Verify password
-                .onItem().ifNotNull().call(userInfo -> {
-                    if (!PasswordHashingUtil.verifyPassword(loginDTO.getPassword(), userInfo.getPassword())) {
-                        // Don't report password error, but user not found, to avoid some user registration detection.
-                        // return Uni.createFrom().failure(new GlobalRuntimeException(
-                        //         "user " + loginDTO.getUsername() + " password incorrect."));
-                        return Uni.createFrom().failure(new DataNotFoundException("user"));
-                    }
-                    return Uni.createFrom().item(userInfo);
-                })
-                .onItem().transformToUni(WebTokenUtil::generateToken)
-                .onItem().transform(token -> token);
     }
 }
