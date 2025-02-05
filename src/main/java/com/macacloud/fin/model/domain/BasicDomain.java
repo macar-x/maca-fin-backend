@@ -1,6 +1,6 @@
 package com.macacloud.fin.model.domain;
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;

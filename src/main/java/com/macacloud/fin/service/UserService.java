@@ -6,9 +6,7 @@ import io.smallrye.mutiny.Uni;
 
 public interface UserService {
 
-    Uni<UserInfoDomain> getById(Long userId);
+    UserInfoDomain getByUsername(String username);
 
-    Uni<UserInfoDomain> getByUsername(String username);
-
-    Uni<UserInfoDomain> create(UserRegistrationRequest userRegistrationRequest);
+    UserInfoDomain create(UserRegistrationRequest userRegistrationRequest);
 }

@@ -5,6 +5,7 @@ import com.macacloud.fin.model.CommonResponse;
 import com.macacloud.fin.model.auth.UserLoginRequest;
 import com.macacloud.fin.model.auth.UserRegistrationRequest;
 import com.macacloud.fin.model.domain.UserInfoDomain;
+import com.macacloud.fin.service.UserService;
 import com.macacloud.fin.util.ConfigurationUtil;
 import com.macacloud.fin.util.KeyCloakUtil;
 import com.macacloud.fin.util.ResponseUtil;
@@ -14,6 +15,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -42,8 +44,12 @@ public class AuthenticationResource {
     @Inject
     @RestClient
     KeyCloakUtil keyCloakUtil;
+
     @Inject
     SessionUtil sessionUtil;
+
+    @Inject
+    UserService userService;
 
     private final static String realm = ConfigurationUtil.getConfigValue("quarkus.oidc.realm");
     private final static String clientId = ConfigurationUtil.getConfigValue("quarkus.oidc.client-id");
@@ -85,6 +91,7 @@ public class AuthenticationResource {
     @POST
     @Path("/register")
     @PermitAll
+    @Transactional
     public CommonResponse<UserInfoDomain> create(UserRegistrationRequest userRegistrationRequest) {
 
         // Parameter validations.
@@ -92,24 +99,25 @@ public class AuthenticationResource {
             throw new ArgumentNotValidException();
         }
 
+        // Create user to local service.
+        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
+
+        // create user to OIDC provider, check status.
         try (Response response = this.register(userRegistrationRequest)) {
-
-            // create user to OIDC provider, check status.
             if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
-                ResponseUtil.failed(response.getStatusInfo().toString());
+                userInfoDomain.delete();
+                return ResponseUtil.failed(response.getStatusInfo().toString());
             }
-            return ResponseUtil.success("register succeed.");
-
-            // Create user to local service.
-            // Uni<UserInfoDomain> userInfoFuture = userService.create(userRegistrationRequest);
-            // return userInfoFuture.onItem().transform(item -> ResponseUtil.success("register succeed", item));
         } catch (WebApplicationException webApplicationException) {
+            userInfoDomain.delete();
             Response response = webApplicationException.getResponse();
             if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                return ResponseUtil.success(Response.Status.CONFLICT, "user existed.");
+                return ResponseUtil.success(Response.Status.CONFLICT, "user conflict on provider.");
             }
             throw webApplicationException;
         }
+
+        return ResponseUtil.success("register succeed.", userInfoDomain);
     }
 
 

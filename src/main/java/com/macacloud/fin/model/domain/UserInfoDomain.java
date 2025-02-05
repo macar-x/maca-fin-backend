@@ -40,7 +40,7 @@ public class UserInfoDomain extends BasicDomain {
     private String email;
 
 
-    public static Uni<UserInfoDomain> findByUsername(String username) {
+    public static UserInfoDomain findByUsername(String username) {
         return UserInfoDomain.find("username = ?1", username).firstResult();
     }
 }

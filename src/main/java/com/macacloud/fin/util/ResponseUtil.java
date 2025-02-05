@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
  */
 public class ResponseUtil {
 
+    public static <T> CommonResponse<T> success() {
+        return success(Response.Status.OK);
+    }
+
     public static <T> CommonResponse<T> success(Response.Status status) {
         return success(status, null);
     }
