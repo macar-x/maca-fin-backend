@@ -20,6 +20,8 @@ public class DefaultApplication extends Application {
     @Transactional
     public void loadUsers(@Observes StartupEvent evt) {
 
+        // This method will be called when the application starts
+        log.trace("system started-up message.");
         log.debug("system started-up message.");
         log.info("system started-up message.");
         log.warn("system started-up message.");
