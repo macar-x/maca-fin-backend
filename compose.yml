@@ -1,0 +1,31 @@
+version: '3'
+services:
+  app:
+    image: maca-cloud/maca-fin-backend:${TARGET_IMAGE_VERSION}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    restart: unless-stopped
+    ports:
+      - "${MACA_FIN_BACKEND_PUBLIC_PORT}:8080"
+    env_file: ".env"
+    volumes:
+      - persist-data:/data
+    networks:
+      - maca_cloud_network
+volumes:
+  persist-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${MACA_FIN_BACKEND_DATA_PATH}
+networks:
+  maca_cloud_network:
+    external: true

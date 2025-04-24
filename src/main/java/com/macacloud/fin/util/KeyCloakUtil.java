@@ -54,8 +54,8 @@ public interface KeyCloakUtil {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userRegistrationRequest.getUsername());
         user.setEmail(userRegistrationRequest.getEmail());
-        // user.setFirstName(userRegistrationRequest.getFirstName());
-        // user.setLastName(userRegistrationRequest.getLastName());
+        user.setFirstName(userRegistrationRequest.getFirstName());
+        user.setLastName(userRegistrationRequest.getLastName());
         user.setEnabled(true);
 
         CredentialRepresentation credential = new CredentialRepresentation();
