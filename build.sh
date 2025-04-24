@@ -11,29 +11,29 @@ if [ -f ".env" ]; then
 fi
 
 # Check environment variables.
-if [ -z MACA_FIN_DATABASE_JDBC_URL ]; then
+if [ -z "$MACA_FIN_DATABASE_JDBC_URL" ]; then
   echo "MACA_FIN_DATABASE_JDBC_URL is empty, please check .env file."
-  exit -1
+  exit 255
 fi
-if [ -z MACA_FIN_DATABASE_USERNAME ]; then
+if [ -z "$MACA_FIN_DATABASE_USERNAME" ]; then
   echo "MACA_FIN_DATABASE_USERNAME is empty, please check .env file."
-  exit -1
+  exit 255
 fi
-if [ -z MACA_FIN_DATABASE_PASSWORD ]; then
+if [ -z "$MACA_FIN_DATABASE_PASSWORD" ]; then
   echo "MACA_FIN_DATABASE_PASSWORD is empty, please check .env file."
-  exit -1
+  exit 255
 fi
-if [ -z MACA_FIN_OIDC_SERVER_URI ]; then
+if [ -z "$MACA_FIN_OIDC_SERVER_URI" ]; then
   echo "MACA_FIN_OIDC_SERVER_URI is empty, please check .env file."
-  exit -1
+  exit 255
 fi
-if [ -z MACA_FIN_OIDC_ADMIN_SECRET ]; then
+if [ -z "$MACA_FIN_OIDC_ADMIN_SECRET" ]; then
   echo "MACA_FIN_OIDC_ADMIN_SECRET is empty, please check .env file."
-  exit -1
+  exit 255
 fi
 
 # remove existed images.
-sudo docker rmi maca-cloud/maca-fin-backend:$TARGET_IMAGE_VERSION
+sudo docker rmi maca-cloud/maca-fin-backend:"$TARGET_IMAGE_VERSION"
 
 # build new images.
-sudo docker build -t maca-cloud/maca-fin-backend:$TARGET_IMAGE_VERSION .
+sudo docker build -t maca-cloud/maca-fin-backend:"$TARGET_IMAGE_VERSION" .

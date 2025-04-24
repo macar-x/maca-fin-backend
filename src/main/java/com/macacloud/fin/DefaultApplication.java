@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultApplication extends Application {
 
     @Transactional
-    public void loadUsers(@Observes StartupEvent evt) {
+    public void startUpEventListener(@Observes StartupEvent evt) {
 
         // This method will be called when the application starts
         log.trace("system started-up message.");

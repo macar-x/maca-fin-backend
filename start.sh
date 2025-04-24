@@ -11,13 +11,13 @@ if [ -f ".env" ]; then
 fi
 
 # Check environment variables.
-if [ -z MACA_FIN_BACKEND_PUBLIC_PORT ]; then
+if [ -z "$MACA_FIN_BACKEND_PUBLIC_PORT" ]; then
   echo "MACA_FIN_BACKEND_PUBLIC_PORT is empty, please check .env file."
-  exit -1
+  exit 255
 fi
-if [ -z MACA_FIN_BACKEND_DATA_PATH ]; then
+if [ -z "$MACA_FIN_BACKEND_DATA_PATH" ]; then
   echo "MACA_FIN_BACKEND_DATA_PATH is empty, please check .env file."
-  exit -1
+  exit 255
 fi
 
 # stop all container
