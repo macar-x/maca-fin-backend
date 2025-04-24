@@ -53,7 +53,8 @@ public class AuthenticationResource {
 
     private final static String realm = ConfigurationUtil.getConfigValue("quarkus.oidc.realm");
     private final static String clientId = ConfigurationUtil.getConfigValue("quarkus.oidc.client-id");
-    private final static String clientSecret = ConfigurationUtil.getConfigValue("quarkus.oidc.credentials.secret");
+    private final static String clientSecret = ConfigurationUtil.getConfigValue("quarkus.oidc.credentials.secret");    private final static String adminUsername = ConfigurationUtil.getConfigValue("quarkus.oidc.realm.admin.username");
+    private final static String adminPassword = ConfigurationUtil.getConfigValue("quarkus.oidc.realm.admin.password");
 
     private AccessTokenResponse adminToken;
     private Long adminLoginTimestamp;
@@ -141,6 +142,7 @@ public class AuthenticationResource {
         } catch (WebApplicationException webApplicationException) {
             Response response = webApplicationException.getResponse();
             if (response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()) {
+                log.error("user {} try to login but failed.", userLoginRequest.getUsername());
                 return ResponseUtil.success(Response.Status.UNAUTHORIZED, "username and password not match.");
             }
             throw webApplicationException;
@@ -201,10 +203,11 @@ public class AuthenticationResource {
     private void doAdminLogin() {
 
         UserLoginRequest userLoginRequest = new UserLoginRequest();
-        userLoginRequest.setUsername("admin");
-        userLoginRequest.setPassword("admin");
+        userLoginRequest.setUsername(adminUsername);
+        userLoginRequest.setPassword(adminPassword);
 
         adminToken = this.doLogin(userLoginRequest).getBody();
         adminLoginTimestamp = new Date().getTime();
     }
 }
+
