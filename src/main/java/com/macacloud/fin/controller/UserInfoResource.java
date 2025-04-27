@@ -26,9 +26,9 @@ import java.util.List;
  */
 @Slf4j
 @Path("/user")
-@Authenticated
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Authenticated
 @ApplicationScoped
 public class UserInfoResource {
 

@@ -11,24 +11,12 @@ if [ -f ".env" ]; then
 fi
 
 # Check environment variables.
-if [ -z "$MACA_FIN_DATABASE_JDBC_URL" ]; then
-  echo "MACA_FIN_DATABASE_JDBC_URL is empty, please check .env file."
+if [ -z "$TARGET_IMAGE_VERSION" ]; then
+  echo "TARGET_IMAGE_VERSION is empty, please check .env file."
   exit 255
 fi
-if [ -z "$MACA_FIN_DATABASE_USERNAME" ]; then
-  echo "MACA_FIN_DATABASE_USERNAME is empty, please check .env file."
-  exit 255
-fi
-if [ -z "$MACA_FIN_DATABASE_PASSWORD" ]; then
-  echo "MACA_FIN_DATABASE_PASSWORD is empty, please check .env file."
-  exit 255
-fi
-if [ -z "$MACA_FIN_OIDC_SERVER_URI" ]; then
-  echo "MACA_FIN_OIDC_SERVER_URI is empty, please check .env file."
-  exit 255
-fi
-if [ -z "$MACA_FIN_OIDC_ADMIN_SECRET" ]; then
-  echo "MACA_FIN_OIDC_ADMIN_SECRET is empty, please check .env file."
+if [ -z "$TZ" ]; then
+  echo "Timezone is empty, please check .env file."
   exit 255
 fi
 

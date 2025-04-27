@@ -100,17 +100,13 @@ public class AuthenticationResource {
             throw new ArgumentNotValidException();
         }
 
-        // Create user to local service.
-        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
-
         // create user to OIDC provider, check status.
-        try (Response response = this.register(userRegistrationRequest)) {
+        try (Response response = this.register(userRegistrationRequest.getEmail(),
+                userRegistrationRequest.getUsername(), userRegistrationRequest.getPassword())) {
             if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
-                userInfoDomain.delete();
                 return ResponseUtil.failed(response.getStatusInfo().toString());
             }
         } catch (WebApplicationException webApplicationException) {
-            userInfoDomain.delete();
             Response response = webApplicationException.getResponse();
             if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
                 return ResponseUtil.success(Response.Status.CONFLICT, "user conflict on provider.");
@@ -118,6 +114,8 @@ public class AuthenticationResource {
             throw webApplicationException;
         }
 
+        // Create user to local service.
+        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
         return ResponseUtil.success("register succeed.", userInfoDomain);
     }
 
@@ -171,18 +169,8 @@ public class AuthenticationResource {
     }
 
     // OIDC Register Handler
-    private Response register(UserRegistrationRequest userRegistrationRequest) {
-
-        if (StringUtil.isNullOrEmpty(userRegistrationRequest.getUsername())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-        if (StringUtil.isNullOrEmpty(userRegistrationRequest.getPassword())) {
-            throw new ArgumentNotValidException(
-                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
-        }
-
-        UserRepresentation userRepresentation = keyCloakUtil.composeUserRepresentation(userRegistrationRequest);
+    private Response register(String email, String username, String password) {
+        UserRepresentation userRepresentation = keyCloakUtil.composeUserRepresentation(email, username, password);
         return keyCloakUtil.createUser(this.getAdminToken(), realm, userRepresentation);
     }
 

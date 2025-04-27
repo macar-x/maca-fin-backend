@@ -1,6 +1,8 @@
 package com.macacloud.fin.util;
 
+import com.macacloud.fin.exception.ArgumentNotValidException;
 import com.macacloud.fin.model.auth.UserRegistrationRequest;
+import io.quarkus.runtime.util.StringUtil;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -49,18 +51,29 @@ public interface KeyCloakUtil {
                         UserRepresentation userRepresentation);
 
 
-    default UserRepresentation composeUserRepresentation(UserRegistrationRequest userRegistrationRequest) {
+    default UserRepresentation composeUserRepresentation(String email, String username, String password) {
+
+        if (StringUtil.isNullOrEmpty(email)) {
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("email"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
+        }
+        if (StringUtil.isNullOrEmpty(username)) {
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("username"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
+        }
+        if (StringUtil.isNullOrEmpty(password)) {
+            throw new ArgumentNotValidException(
+                    Collections.singletonList("password"), ArgumentNotValidException.MESSAGE_NOT_EMPTY);
+        }
 
         UserRepresentation user = new UserRepresentation();
-        user.setUsername(userRegistrationRequest.getUsername());
-        user.setEmail(userRegistrationRequest.getEmail());
-        // user.setFirstName(userRegistrationRequest.getFirstName());
-        // user.setLastName(userRegistrationRequest.getLastName());
+        user.setUsername(username);
+        user.setEmail(email);
         user.setEnabled(true);
 
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(userRegistrationRequest.getPassword());
+        credential.setValue(password);
         credential.setTemporary(false);
         user.setCredentials(Collections.singletonList(credential));
 
