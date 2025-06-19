@@ -53,7 +53,8 @@ public class AuthenticationResource {
 
     private final static String realm = ConfigurationUtil.getConfigValue("quarkus.oidc.realm");
     private final static String clientId = ConfigurationUtil.getConfigValue("quarkus.oidc.client-id");
-    private final static String clientSecret = ConfigurationUtil.getConfigValue("quarkus.oidc.credentials.secret");    private final static String adminUsername = ConfigurationUtil.getConfigValue("quarkus.oidc.realm.admin.username");
+    private final static String clientSecret = ConfigurationUtil.getConfigValue("quarkus.oidc.credentials.secret");
+    private final static String adminUsername = ConfigurationUtil.getConfigValue("quarkus.oidc.realm.admin.username");
     private final static String adminPassword = ConfigurationUtil.getConfigValue("quarkus.oidc.realm.admin.password");
 
     private AccessTokenResponse adminToken;
@@ -114,9 +115,9 @@ public class AuthenticationResource {
             throw webApplicationException;
         }
 
-        // Create user to local service.
-        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
-        return ResponseUtil.success("register succeed.", userInfoDomain);
+        // Create user to local service. todo(emmett): ignored, consider to remove local user module.
+        // UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
+        return ResponseUtil.compose(Response.Status.CREATED, null, null);
     }
 
 

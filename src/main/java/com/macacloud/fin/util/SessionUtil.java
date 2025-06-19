@@ -25,27 +25,26 @@ public class SessionUtil implements Serializable {
 
     /**
      * Injection point for the Access Token issued by the OpenID Connect Provider
-     * @Inject
-     * JsonWebToken accessToken;
      */
-
     @Inject
     SecurityIdentity identity;
 
 
     public Boolean isLogin() {
-
-        // log.warn("identity: {}", identity.getPrincipal().getName());
-        // log.warn("accessToken: {}", accessToken.getRawToken());
-
         return !this.isNotLogin();
     }
 
     public Boolean isNotLogin() {
+
         if (identity == null) {
             return Boolean.TRUE;
         }
-        return Boolean.TRUE.equals(identity.isAnonymous());
+
+        log.warn("roles: {}", identity.getRoles());
+        // log.warn("username: {}", identity.getPrincipal().getName());
+        // log.warn("accessToken: {}", accessToken.getRawToken());
+
+        return identity.isAnonymous();
     }
 
     public String requireLoginUsername() {

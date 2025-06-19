@@ -9,7 +9,6 @@ import com.macacloud.fin.util.PasswordHashingUtil;
 import com.macacloud.fin.util.SnowFlakeUtil;
 import io.quarkus.runtime.util.StringUtil;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
 
 import java.util.Collections;
 
@@ -48,7 +47,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setId(SnowFlakeUtil.getNextId());
         userInfo.setUsername(userRegistrationRequest.getUsername());
         userInfo.setPassword(PasswordHashingUtil.hashPassword(userRegistrationRequest.getPassword()));
-        userInfo.setRoles(UserRoleConstant.USER);
+        userInfo.setRoles(UserRoleConstant.DEFAULT);
         userInfo.setMobilePhone(userRegistrationRequest.getMobilePhone());
         userInfo.setEmail(userRegistrationRequest.getEmail());
         userInfo.persist();

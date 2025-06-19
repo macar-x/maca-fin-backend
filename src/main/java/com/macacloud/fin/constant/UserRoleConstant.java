@@ -8,6 +8,6 @@ package com.macacloud.fin.constant;
  * @since 2025/01/09
  */
 public abstract class UserRoleConstant {
-    public static final String ADMIN = "admin";
-    public static final String USER = "user";
+    public static final String ADMIN = "realm-admin";
+    public static final String DEFAULT = "default-roles-maca-fin";
 }

@@ -13,7 +13,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -39,7 +38,7 @@ public class UserInfoResource {
 
     @GET
     @Path("")
-    @RolesAllowed(UserRoleConstant.USER)
+    @RolesAllowed(UserRoleConstant.DEFAULT)
     public CommonResponse<UserInfoDomain> get() {
         return ResponseUtil.success(userService.getByUsername(sessionUtil.requireLoginUsername()));
     }
