@@ -24,6 +24,22 @@ public class BasicDomain extends PanacheEntityBase {
     @Column(name = "created_at", insertable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at", insertable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
+
+    // PanacheEntityBase with deleted field already.
+    // @Column(name = "is_deleted", nullable = false)
+    // private Boolean is_deleted;
 }

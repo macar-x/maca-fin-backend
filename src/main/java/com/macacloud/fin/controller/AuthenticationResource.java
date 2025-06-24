@@ -101,23 +101,26 @@ public class AuthenticationResource {
             throw new ArgumentNotValidException();
         }
 
+        // Create user to local service.
+        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
+
+        // todo(emmett): remove user password info from table, auth should completed on OIDC side.
+        // todo(emmett): should check OIDC, if existed, import it.
         // create user to OIDC provider, check status.
         try (Response response = this.register(userRegistrationRequest.getEmail(),
                 userRegistrationRequest.getUsername(), userRegistrationRequest.getPassword())) {
             if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
-                return ResponseUtil.failed(response.getStatusInfo().toString());
+                throw new ArgumentNotValidException(response.getStatusInfo().toString());
             }
         } catch (WebApplicationException webApplicationException) {
             Response response = webApplicationException.getResponse();
             if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                return ResponseUtil.success(Response.Status.CONFLICT, "user conflict on provider.");
+                throw new ArgumentNotValidException(Collections.singletonList("username"), "has been taken");
             }
             throw webApplicationException;
         }
 
-        // Create user to local service. todo(emmett): ignored, consider to remove local user module.
-        // UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
-        return ResponseUtil.compose(Response.Status.CREATED, null, null);
+        return ResponseUtil.compose(Response.Status.CREATED, null, userInfoDomain);
     }
 
 
