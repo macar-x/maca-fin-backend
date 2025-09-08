@@ -1,6 +1,5 @@
 package com.macacloud.fin.model.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,9 +24,9 @@ public class UserInfoDomain extends BasicDomain {
     @Column(name = "username", length = 64, unique = true, nullable = false)
     private String username;
 
-    @JsonIgnore
-    @Column(name = "password", length = 256, nullable = false)
-    private String password;
+    // @JsonIgnore
+    // @Column(name = "password", length = 256, nullable = false)
+    // private String password;
 
     @Column(name = "roles", length = 128, nullable = false)
     private String roles;

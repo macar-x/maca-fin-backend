@@ -1,6 +1,8 @@
 package com.macacloud.fin.util;
 
+import com.macacloud.fin.exception.DataNotFoundException;
 import com.macacloud.fin.exception.LoginRequiredException;
+import com.macacloud.fin.model.domain.UserInfoDomain;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -67,5 +69,15 @@ public class SessionUtil implements Serializable {
         }
 
         return principal.getName();
+    }
+
+    public Long getLoginUserIdOrThrow() {
+
+        String username = this.requireLoginUsername();
+        UserInfoDomain userInfoDomain = UserInfoDomain.findByUsername(username);
+        if (userInfoDomain == null) {
+            throw new DataNotFoundException("user_info");
+        }
+        return userInfoDomain.getId();
     }
 }

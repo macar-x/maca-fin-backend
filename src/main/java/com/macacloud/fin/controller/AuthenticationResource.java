@@ -83,11 +83,27 @@ public class AuthenticationResource {
         }
 
         // if refresh token not empty, refresh instead of login.
+        CommonResponse<AccessTokenResponse> loginAttemptResponse;
         if (!StringUtil.isNullOrEmpty(userLoginRequest.getRefreshToken())) {
-            return this.refreshToken(userLoginRequest);
-        } else {
-            return this.getToken(userLoginRequest);
+            loginAttemptResponse = this.refreshToken(userLoginRequest);
+            // todo(emmett): Consider to verify response before return, divide refresh/login into two methods.
+            log.debug("user access-token refreshed by refresh-token {}", userLoginRequest.getRefreshToken());
+            return loginAttemptResponse;
         }
+
+        loginAttemptResponse = this.getToken(userLoginRequest);
+        // Login succeed, user existed, check if there's a local account.
+        if (loginAttemptResponse != null && Response.Status.OK.getStatusCode() == loginAttemptResponse.getCode()) {
+            // todo(emmett): 后续 用户模块 - 完善用户信息 功能上线后可通过返回标记引导填写。
+            String username = userLoginRequest.getUsername();
+            UserInfoDomain localUserInfo = UserInfoDomain.findByUsername(username);
+            if (localUserInfo == null) {
+                log.warn("user {} login succeed, but no local profile found.", username);
+            } else {
+                log.debug("user {} login succeed", username);
+            }
+        }
+        return loginAttemptResponse;
     }
 
     @POST
@@ -101,12 +117,24 @@ public class AuthenticationResource {
             throw new ArgumentNotValidException();
         }
 
-        // Create user to local service.
-        UserInfoDomain userInfoDomain = userService.create(userRegistrationRequest);
+        // Check if user existed on OIDC service.
+        UserLoginRequest userLoginRequest = new UserLoginRequest();
+        userLoginRequest.setUsername(userRegistrationRequest.getUsername());
+        userLoginRequest.setPassword(userRegistrationRequest.getPassword());
+        CommonResponse<AccessTokenResponse> loginAttemptResponse = this.getToken(userLoginRequest);
+        // Login succeed, user existed, check if there's a local account.
+        if (loginAttemptResponse != null &&
+                Response.Status.OK.getStatusCode() == loginAttemptResponse.getCode()) {
+            UserInfoDomain userInfo = UserInfoDomain.findByUsername(userRegistrationRequest.getUsername());
+            if (userInfo == null) {
+                log.warn("user existed on OIDC, create local account only.");
+                userInfo = userService.create(userRegistrationRequest);
+            }
+            return ResponseUtil.compose(Response.Status.OK, null, userInfo);
+        }
 
-        // todo(emmett): remove user password info from table, auth should completed on OIDC side.
-        // todo(emmett): should check OIDC, if existed, import it.
-        // create user to OIDC provider, check status.
+        // user existed on OIDC service, create a new one.
+        log.info("user not existed on OIDC, will create first, then insert a local account.");
         try (Response response = this.register(userRegistrationRequest.getEmail(),
                 userRegistrationRequest.getUsername(), userRegistrationRequest.getPassword())) {
             if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
@@ -120,7 +148,7 @@ public class AuthenticationResource {
             throw webApplicationException;
         }
 
-        return ResponseUtil.compose(Response.Status.CREATED, null, userInfoDomain);
+        return ResponseUtil.compose(Response.Status.CREATED, null, userService.create(userRegistrationRequest));
     }
 
 

@@ -1,9 +1,9 @@
 package com.macacloud.fin.controller;
 
 import com.macacloud.fin.constant.UserRoleConstant;
+import com.macacloud.fin.exception.GlobalRuntimeException;
 import com.macacloud.fin.model.CommonResponse;
 import com.macacloud.fin.model.domain.UserInfoDomain;
-import com.macacloud.fin.service.UserService;
 import com.macacloud.fin.util.ResponseUtil;
 import com.macacloud.fin.util.SessionUtil;
 import io.quarkus.panache.common.Sort;
@@ -32,15 +32,20 @@ import java.util.List;
 public class UserInfoResource {
 
     @Inject
-    UserService userService;
-    @Inject
     SessionUtil sessionUtil;
 
     @GET
     @Path("")
-    @RolesAllowed(UserRoleConstant.DEFAULT)
+    @RolesAllowed(UserRoleConstant.USER)
     public CommonResponse<UserInfoDomain> get() {
-        return ResponseUtil.success(userService.getByUsername(sessionUtil.requireLoginUsername()));
+
+        String username = sessionUtil.requireLoginUsername();
+        UserInfoDomain userInfoDomain = UserInfoDomain.findByUsername(username);
+        if (userInfoDomain == null) {
+            throw new GlobalRuntimeException("user " + username + " not exist.");
+        }
+
+        return ResponseUtil.success(userInfoDomain);
     }
 
     @GET
@@ -59,15 +64,5 @@ public class UserInfoResource {
         return ResponseUtil.success(list);
     }
 
-    // fixme(emmett): Should also delete it on OIDC provider.
-    // @DELETE
-    // @Path("/{id}")
-    // @RolesAllowed(UserRoleConstant.ADMIN)
-    // public CommonResponse<Void> delete(@PathParam("id") Long id) {
-    //     Boolean status = UserInfoDomain.deleteById(id);
-    //     if (Boolean.TRUE.equals(status)) {
-    //         return ResponseUtil.success();
-    //     }
-    //     return ResponseUtil.success(Response.Status.NOT_FOUND);
-    // }
+    // Will not provided user delete operation, should keep OIDC user for other application if existed.
 }

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS backend.user_info
 (
     id           BIGINT                              NOT NULL PRIMARY KEY,
     username     VARCHAR(64)                         NOT NULL UNIQUE,
-    password     VARCHAR(256)                        NOT NULL,
+    -- password     VARCHAR(256)                        NOT NULL,
     roles        VARCHAR(256)                        NOT NULL,
     nickname     VARCHAR(256)                        NULL,
     avatar_url   VARCHAR(256)                        NULL,
@@ -31,12 +31,12 @@ ALTER TABLE backend.user_info
 
 -- Insert initial data only if the table is empty (newly created)
 -- This prevents duplicate data if the script is run multiple times
-INSERT INTO backend.user_info (id, username, password, roles, nickname, avatar_url, mobile_phone, email)
+INSERT INTO backend.user_info (id, username, roles, nickname, avatar_url, mobile_phone, email)
 SELECT *
 FROM (SELECT 5840767775932416,
              'admin',
-             'Eg5cDP0Sdg1p6SMS2MatEw==$Ao8fEBwqlkLivPjuGuxf+KSDOXUkvkgzCaX5NEkLsmY=',
-             'admin,user',
+             -- 'Eg5cDP0Sdg1p6SMS2MatEw==$Ao8fEBwqlkLivPjuGuxf+KSDOXUkvkgzCaX5NEkLsmY=',
+             'admin,default-roles-maca-fin',
              'Administrator',
              '/data/avatar/default.jpg',
              '13813813888',
