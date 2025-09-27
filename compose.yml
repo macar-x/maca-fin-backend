@@ -1,6 +1,51 @@
 version: '3'
 services:
-  app:
+  database:
+    image: 'postgres:17.2'
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - path: ".env"
+        required: true
+    ports:
+      - "${MACA_FIN_DATABASE_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${MACA_FIN_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${MACA_FIN_DATABASE_PASSWORD}
+      POSTGRES_DB: ${MACA_FIN_DATABASE_NAME}
+    volumes:
+      - "${MACA_FIN_DATABASE_PERSIST_PATH}:/var/lib/postgresql/data/"
+    networks:
+      - maca_cloud_network
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.0
+    container_name: keycloak
+    restart: unless-stopped
+    env_file: ".env"
+    ports:
+      - "${MACA_FIN_OIDC_SERVER_HTTP_PORT}:8080"
+      - "${MACA_FIN_OIDC_SERVER_HTTPS_PORT}:8443"
+    volumes:
+      - ./keycloak.conf:/opt/keycloak/conf/keycloak.conf
+      # ./certfile.pem:/opt/keycloak/conf/certfile.pem
+      # ./keyfile.pem:/opt/keycloak/conf/keyfile.pem
+    networks:
+      - maca_cloud_network
+    environment:
+      KC_DB: postgres
+      KC_HOSTNAME: ${MACA_FIN_OIDC_SERVER_URI}
+      # KC_HOSTNAME_STRICT: false
+      # KC_PROXY_HEADERS: forwarded
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+      KC_HTTP_ENABLED: true
+      # KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/certfile.pem
+      # KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/keyfile.pem
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${MACA_FIN_OIDC_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${MACA_FIN_OIDC_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    command: start
+  backend:
     image: maca-cloud/maca-fin-backend:${TARGET_IMAGE_VERSION}
     deploy:
       replicas: 1
@@ -19,6 +64,9 @@ services:
       - persist-data:/data
     networks:
       - maca_cloud_network
+networks:
+  maca_cloud_network:
+    external: true
 volumes:
   persist-data:
     driver: local
@@ -26,6 +74,3 @@ volumes:
       o: bind
       type: none
       device: ${MACA_FIN_BACKEND_DATA_PATH}
-networks:
-  maca_cloud_network:
-    external: true

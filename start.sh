@@ -20,8 +20,8 @@ if [ -z "$MACA_FIN_BACKEND_DATA_PATH" ]; then
   exit 255
 fi
 # Check backend database configuration.
-if [ -z "$MACA_FIN_DATABASE_JDBC_URL" ]; then
-  echo "MACA_FIN_DATABASE_JDBC_URL is empty, please check .env file."
+if [ -z "$MACA_FIN_BACKEND_DATABASE_JDBC_URL" ]; then
+  echo "MACA_FIN_BACKEND_DATABASE_JDBC_URL is empty, please check .env file."
   exit 255
 fi
 if [ -z "$MACA_FIN_DATABASE_USERNAME" ]; then
@@ -30,6 +30,18 @@ if [ -z "$MACA_FIN_DATABASE_USERNAME" ]; then
 fi
 if [ -z "$MACA_FIN_DATABASE_PASSWORD" ]; then
   echo "MACA_FIN_DATABASE_PASSWORD is empty, please check .env file."
+  exit 255
+fi
+if [ -z "$MACA_FIN_DATABASE_PORT" ]; then
+  echo "MACA_FIN_DATABASE_PORT is empty, please check .env file."
+  exit 255
+fi
+if [ -z "$MACA_FIN_DATABASE_NAME" ]; then
+  echo "MACA_FIN_DATABASE_NAME is empty, please check .env file."
+  exit 255
+fi
+if [ -z "$MACA_FIN_DATABASE_PERSIST_PATH" ]; then
+  echo "MACA_FIN_DATABASE_PERSIST_PATH is empty, please check .env file."
   exit 255
 fi
 # Check backend OIDC configuration.
@@ -57,6 +69,22 @@ if [ -z "$MACA_FIN_OIDC_ADMIN_PASSWORD" ]; then
   echo "MACA_FIN_OIDC_ADMIN_PASSWORD is empty, please check .env file."
   exit 255
 fi
+if [ -z "$MACA_FIN_OIDC_SERVER_HTTP_PORT" ]; then
+  echo "MACA_FIN_OIDC_SERVER_HTTP_PORT is empty, please check .env file."
+  exit 255
+fi
+if [ -z "$MACA_FIN_OIDC_SERVER_HTTPS_PORT" ]; then
+  echo "MACA_FIN_OIDC_SERVER_HTTPS_PORT is empty, please check .env file."
+  exit 255
+fi
+
+# stop all container
+sudo docker compose down -v --remove-orphans
+# sudo docker network remove maca_cloud_network
+
+# start all container
+sudo docker network create maca_cloud_network
+sudo docker compose up -d
 
 # Scan migrate folder and execute all sql files
 if [ -d "migrate" ]; then
@@ -77,11 +105,3 @@ if [ -d "migrate" ]; then
 else
   echo "migrate folder not detected, skipping..."
 fi
-
-# stop all container
-sudo docker compose down -v --remove-orphans
-sudo docker network remove maca_cloud_network
-
-# start all container
-sudo docker network create maca_cloud_network
-sudo docker compose up -d
