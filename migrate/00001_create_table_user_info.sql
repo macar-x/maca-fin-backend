@@ -1,23 +1,44 @@
-------------------------------
--- Table Creation: User Info
--- @authors Emmett
--- @since 2025/04/26
-------------------------------
+-- Database Migration File No.001
+-- 创建系统用户数据表
+-- @author Emmett
+-- @since 2025/05/22
 
--- DROP TABLE IF EXISTS BACKEND.USER_INFO;
-CREATE TABLE IF NOT EXISTS BACKEND.USER_INFO
+-- ----------------------------
+-- Table structure for user_info.
+-- ----------------------------
+-- DROP TABLE IF EXISTS backend.user_info;
+CREATE TABLE IF NOT EXISTS backend.user_info
 (
-    id           BIGINT PRIMARY KEY          NOT NULL,
-    username     VARCHAR(64) UNIQUE          NOT NULL,
-    password     VARCHAR(256)                NOT NULL,
-    roles        VARCHAR(256)                NOT NULL,
-    mobile_phone VARCHAR(32)                 NOT NULL,
-    email        VARCHAR(128)                NOT NULL,
-    created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted      BOOLEAN                     NOT NULL DEFAULT FALSE
+    id           BIGINT                              NOT NULL PRIMARY KEY,
+    username     VARCHAR(64)                         NOT NULL UNIQUE,
+    -- password     VARCHAR(256)                        NOT NULL,
+    roles        VARCHAR(256)                        NOT NULL,
+    nickname     VARCHAR(256)                        NULL,
+    avatar_url   VARCHAR(256)                        NULL,
+    mobile_phone VARCHAR(32)                         NOT NULL,
+    email        VARCHAR(128)                        NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
+    created_by   BIGINT    DEFAULT -1                NULL,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
+    updated_by   BIGINT    DEFAULT -1                NULL,
+    deleted_at   TIMESTAMP                           NULL,
+    deleted_by   BIGINT                              NULL,
+    deleted      BOOLEAN   DEFAULT FALSE             NOT NULL
 );
 
-ALTER TABLE BACKEND.USER_INFO
-    OWNER TO MACA;
-CREATE INDEX IF NOT EXISTS user_info_idx_username ON BACKEND.USER_INFO (username);
+ALTER TABLE backend.user_info
+    OWNER TO maca;
+
+-- Insert initial data only if the table is empty (newly created)
+-- This prevents duplicate data if the script is run multiple times
+INSERT INTO backend.user_info (id, username, roles, nickname, avatar_url, mobile_phone, email)
+SELECT *
+FROM (SELECT 5840767775932416,
+             'admin',
+             -- 'Eg5cDP0Sdg1p6SMS2MatEw==$Ao8fEBwqlkLivPjuGuxf+KSDOXUkvkgzCaX5NEkLsmY=',
+             'admin,default-roles-maca-fin',
+             'Administrator',
+             '/data/avatar/default.jpg',
+             '13813813888',
+             'admin@macacloud.com') AS init_data
+WHERE NOT EXISTS (SELECT 1 FROM backend.user_info);
