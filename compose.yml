@@ -1,4 +1,7 @@
 version: '3'
+# Network: All services are on maca_cloud_network
+# Container-to-container communication uses container names (postgres, keycloak, backend)
+# Host access uses host.docker.internal with mapped ports
 services:
   database:
     image: 'postgres:17.2'
@@ -17,6 +20,11 @@ services:
       - "${MACA_FIN_DATABASE_PERSIST_PATH}:/var/lib/postgresql/data/"
     networks:
       - maca_cloud_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MACA_FIN_DATABASE_USERNAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.0
     container_name: keycloak
@@ -45,6 +53,15 @@ services:
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
     command: start
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
   backend:
     image: maca-cloud/maca-fin-backend:${TARGET_IMAGE_VERSION}
     deploy:
@@ -64,6 +81,11 @@ services:
       - persist-data:/data
     networks:
       - maca_cloud_network
+    depends_on:
+      database:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
 networks:
   maca_cloud_network:
     external: true

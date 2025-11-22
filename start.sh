@@ -86,6 +86,46 @@ sudo docker compose down -v --remove-orphans
 sudo docker network create maca_cloud_network
 sudo docker compose up -d
 
+# Function to create database if not exists
+create_database_if_not_exists() {
+  local db_name=$1
+  echo "Checking if database '$db_name' exists..."
+  
+  local db_exists=$(sudo docker exec $MACA_FIN_DATABASE_CONTAINER psql \
+    -U $MACA_FIN_DATABASE_USERNAME -d postgres -tAc \
+    "SELECT 1 FROM pg_database WHERE datname='$db_name'" 2>/dev/null)
+  
+  if [ "$db_exists" != "1" ]; then
+    echo "Database '$db_name' does not exist. Creating..."
+    sudo docker exec $MACA_FIN_DATABASE_CONTAINER psql \
+      -U $MACA_FIN_DATABASE_USERNAME -d postgres -c \
+      "CREATE DATABASE $db_name;"
+    if [ $? -eq 0 ]; then
+      echo "Database '$db_name' created successfully."
+    else
+      echo "Failed to create database '$db_name'."
+      exit 1
+    fi
+  else
+    echo "Database '$db_name' already exists."
+  fi
+}
+
+# Wait for database container to be ready
+echo "Waiting for database container to be ready..."
+for i in {1..30}; do
+  if sudo docker exec $MACA_FIN_DATABASE_CONTAINER pg_isready -U $MACA_FIN_DATABASE_USERNAME > /dev/null 2>&1; then
+    echo "Database container is ready."
+    break
+  fi
+  echo "Waiting for database... ($i/30)"
+  sleep 2
+done
+
+# Create required databases
+create_database_if_not_exists "$MACA_FIN_DATABASE_NAME"
+create_database_if_not_exists "keycloak"
+
 # Scan migrate folder and execute all sql files
 if [ -d "migrate" ]; then
   echo "migrate folder detected, applying..."
@@ -96,10 +136,18 @@ if [ -d "migrate" ]; then
       sudo docker exec -i $MACA_FIN_DATABASE_CONTAINER psql \
       -h 127.0.0.1 -p 5432 -d $MACA_FIN_DATABASE_NAME \
       -U $MACA_FIN_DATABASE_USERNAME < "$file"
+      if [ $? -ne 0 ]; then
+        echo "Failed to execute $file"
+        exit 1
+      fi
       # execute mysql script
       # sudo docker exec -i $MACA_FIN_DATABASE_CONTAINER mysql \
       # -u$MACA_FIN_DATABASE_USERNAME -p$MACA_FIN_DATABASE_PASSWORD \
       # --default-character-set=utf8mb4 $MACA_FIN_DATABASE_NAME < "$file"
+      # if [ $? -ne 0 ]; then
+      #   echo "Failed to execute $file"
+      #   exit 1
+      # fi
     fi
   done
 else
