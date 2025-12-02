@@ -145,6 +145,7 @@ public class AuthenticationResource {
             if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
                 throw new ArgumentNotValidException(Collections.singletonList("username"), "has been taken");
             }
+            // if user existed, but password not match, would have a HTTP 403 response.
             throw webApplicationException;
         }
 
@@ -231,4 +232,3 @@ public class AuthenticationResource {
         adminLoginTimestamp = new Date().getTime();
     }
 }
-

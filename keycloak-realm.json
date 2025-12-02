@@ -3,7 +3,7 @@
   "enabled": true,
   "displayName": "Maca Finance",
   "sslRequired": "external",
-  "registrationAllowed": false,
+  "registrationAllowed": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -92,32 +92,32 @@
   },
   "users": [
     {
-      "username": "admin",
+      "username": "maca",
       "enabled": true,
       "emailVerified": true,
-      "email": "admin@maca-fin.local",
-      "firstName": "Admin",
-      "lastName": "User",
+      "email": "maca@macacloud.com",
+      "firstName": "Maca",
+      "lastName": "Admin",
       "credentials": [
         {
           "type": "password",
-          "value": "admin123",
+          "value": "${MACA_FIN_OIDC_ADMIN_PASSWORD}",
           "temporary": false
         }
       ],
       "realmRoles": ["admin", "user"]
     },
     {
-      "username": "testuser",
+      "username": "demo",
       "enabled": true,
       "emailVerified": true,
-      "email": "test@maca-fin.local",
-      "firstName": "Test",
+      "email": "demo@macacloud.com",
+      "firstName": "Demo",
       "lastName": "User",
       "credentials": [
         {
           "type": "password",
-          "value": "test123",
+          "value": "demo",
           "temporary": false
         }
       ],
