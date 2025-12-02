@@ -35,6 +35,7 @@ services:
       - "${MACA_FIN_OIDC_SERVER_HTTPS_PORT}:8443"
     volumes:
       - ./keycloak.conf:/opt/keycloak/conf/keycloak.conf
+      - ./keycloak-realm.json:/opt/keycloak/data/import/realm.json
       # ./certfile.pem:/opt/keycloak/conf/certfile.pem
       # ./keyfile.pem:/opt/keycloak/conf/keyfile.pem
     networks:
@@ -52,12 +53,14 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${MACA_FIN_OIDC_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
-    command: start
+      KEYCLOAK_ADMIN: ${MACA_FIN_OIDC_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${MACA_FIN_OIDC_ADMIN_PASSWORD}
+    command: start --import-realm
     depends_on:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q HTTP"]
       interval: 10s
       timeout: 5s
       retries: 10

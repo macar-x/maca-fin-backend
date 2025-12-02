@@ -200,6 +200,7 @@ public class AuthenticationResource {
         }
     }
 
+    // todo(emmett): password error after registration.
     // OIDC Register Handler
     private Response register(String email, String username, String password) {
         UserRepresentation userRepresentation = keyCloakUtil.composeUserRepresentation(email, username, password);
