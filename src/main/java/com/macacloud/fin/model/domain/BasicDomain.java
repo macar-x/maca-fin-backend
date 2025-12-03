@@ -32,28 +32,40 @@ public class BasicDomain extends PanacheEntityBase implements Serializable {
     private Long id;
 
     @JsonIgnore
-    @Column(name = "created_at", insertable = false)
+    @Column(name = "created_by", length = 64, nullable = false)
+    private String createdBy;
+
+    @JsonIgnore
+    @Column(name = "created_user_id", nullable = false)
+    private Long createdUserId;
+
+    @JsonIgnore
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @JsonIgnore
-    @Column(name = "created_by")
-    private Long createdBy;
+    @Column(name = "updated_by", length = 64, nullable = false)
+    private String updatedBy;
 
     @JsonIgnore
-    @Column(name = "updated_at", insertable = false)
+    @Column(name = "updated_user_id", nullable = false)
+    private Long updatedUserId;
+
+    @JsonIgnore
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @JsonIgnore
-    @Column(name = "updated_by")
-    private Long updatedBy;
+    @Column(name = "deleted_by", length = 64)
+    private String deletedBy;
+
+    @JsonIgnore
+    @Column(name = "deleted_user_id")
+    private Long deletedUserId;
 
     @JsonIgnore
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-    @JsonIgnore
-    @Column(name = "deleted_by")
-    private Long deletedBy;
 
     // PanacheEntityBase with deleted field already.
     // @Column(name = "is_deleted", nullable = false)
